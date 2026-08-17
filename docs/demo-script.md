@@ -1,7 +1,16 @@
-# SignSpeak — demo video script (~2:30)
+# SignSpeak — demo video
 
-Screencast style: screen recording + your hand in frame, not slides. Devpost's own guidance says open
-with a hook in the first few seconds, don't build up slowly.
+**Final video: `docs/demo-video.mp4`, ~32 seconds.** Built as title cards (the lines below) intercut
+with real screen-captured footage of the live app running against real ASL fingerspelling footage, not
+staged or narrated live.
+
+The calibration source footage (`docs/asl-alphabet-real.mp4`) is built from individual "Letter X
+(American Sign Language)" clips by YouTube channel [@subtitlecaption](https://www.youtube.com/@subtitlecaption),
+each licensed Creative Commons Attribution (reuse allowed), stitched into an A-through-Y sequence and
+cropped to isolate a single hand. Attribution: subtitlecaption, via YouTube, CC BY.
+
+The script below is what the title cards say and what the original plan called for if a live narrated
+take had been recorded instead. Kept for reference.
 
 ---
 
