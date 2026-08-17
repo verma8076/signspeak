@@ -19,9 +19,12 @@ export default function Home() {
     samplesForLetter,
     samplesPerLetter,
     textBuffer,
+    hasSavedCalibration,
     startCamera,
     startFromFile,
     startCalibration,
+    useSavedCalibration,
+    forgetSavedCalibration,
     appendSpace,
     backspace,
     clearText,
@@ -44,9 +47,10 @@ export default function Home() {
           </span>
         </div>
         <p className="max-w-2xl text-sm leading-relaxed text-ink-secondary">
-          SignSpeak learns your hand from a 60-second calibration, then reads ASL fingerspelling live off your
-          webcam and types it out. Everything runs locally in your browser; no frame or landmark ever leaves
-          this device.
+          A generic sign-language model was trained on someone else&apos;s hand. SignSpeak isn&apos;t. It
+          calibrates to <span className="text-ink-primary">your own</span> hand shape in about 60 seconds, then
+          reads ASL fingerspelling live and types it out, fully on-device. No camera frame or landmark ever
+          leaves this browser.
         </p>
       </header>
 
@@ -94,13 +98,31 @@ export default function Home() {
             letters (J and Z need motion, so they&apos;re skipped), holding each shape steady for about a
             second, three times each.
           </p>
-          <button
-            onClick={startCalibration}
-            className="mt-4 rounded-full px-5 py-2.5 text-sm font-semibold text-black transition hover:brightness-110 active:scale-[0.98]"
-            style={{ background: "var(--series-1)" }}
-          >
-            Start calibration
-          </button>
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <button
+              onClick={startCalibration}
+              className="rounded-full px-5 py-2.5 text-sm font-semibold text-black transition hover:brightness-110 active:scale-[0.98]"
+              style={{ background: "var(--series-1)" }}
+            >
+              {hasSavedCalibration ? "Recalibrate" : "Start calibration"}
+            </button>
+            {hasSavedCalibration && (
+              <>
+                <button
+                  onClick={useSavedCalibration}
+                  className="rounded-full border border-border px-5 py-2.5 text-sm font-medium text-ink-secondary transition hover:border-border-strong hover:text-ink-primary"
+                >
+                  Use saved calibration
+                </button>
+                <button
+                  onClick={forgetSavedCalibration}
+                  className="text-[11px] font-medium text-ink-muted transition-colors hover:text-ink-primary"
+                >
+                  Forget saved hand data
+                </button>
+              </>
+            )}
+          </div>
         </div>
       )}
 

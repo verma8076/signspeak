@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { Letter } from "@/types/session";
 
 interface CalibrationPanelProps {
@@ -20,6 +21,7 @@ export function CalibrationPanel({
   dwellProgress,
 }: CalibrationPanelProps) {
   const overallProgress = (currentLetterIndex + samplesForLetter / samplesPerLetter) / totalLetters;
+  const [showChart, setShowChart] = useState(false);
 
   return (
     <div className="fade-up rounded-2xl border border-border bg-surface-card p-6">
@@ -53,10 +55,18 @@ export function CalibrationPanel({
         </div>
 
         <div className="flex-1">
-          <p className="text-sm text-ink-secondary">
-            Hold the shape for <span className="text-ink-primary">{currentLetter ?? "this letter"}</span> steady
-            until the ring fills.
-          </p>
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm text-ink-secondary">
+              Hold the shape for <span className="text-ink-primary">{currentLetter ?? "this letter"}</span> steady
+              until the ring fills.
+            </p>
+            <button
+              onClick={() => setShowChart((v) => !v)}
+              className="shrink-0 rounded-full border border-border px-3 py-1 text-[11px] font-medium text-ink-secondary transition-colors hover:border-border-strong hover:text-ink-primary"
+            >
+              {showChart ? "Hide" : "Show"} letter chart
+            </button>
+          </div>
           <div className="mt-3 flex gap-1.5">
             {Array.from({ length: samplesPerLetter }).map((_, i) => (
               <span
@@ -68,6 +78,20 @@ export function CalibrationPanel({
           </div>
         </div>
       </div>
+
+      {showChart && (
+        <div className="fade-up mt-5 overflow-hidden rounded-xl border border-border bg-black/20 p-3">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/reference/asl-alphabet-chart.png"
+            alt="ASL fingerspelling alphabet reference chart"
+            className="mx-auto max-h-96 w-auto"
+          />
+          <p className="mt-2 text-center text-[11px] text-ink-muted">
+            Public domain ASL alphabet chart, Gallaudet University
+          </p>
+        </div>
+      )}
 
       <div className="mt-5">
         <div className="h-1.5 w-full overflow-hidden rounded-full bg-gridline">

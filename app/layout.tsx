@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "SignSpeak",
-  description: "On-device ASL fingerspelling translator that calibrates to your own hand.",
+  description: "A sign-language translator that calibrates to your own hand in 60 seconds instead of a generic pretrained model.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

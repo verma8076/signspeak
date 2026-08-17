@@ -8,6 +8,7 @@ import { extractFeatures } from "@/ml/features";
 import { HandShapeClassifier } from "@/ml/classifier";
 import { CalibrationController } from "./calibrationController";
 import { LetterCommitter } from "./letterCommitter";
+import { clearCalibration, loadCalibration, saveCalibration } from "./calibrationStorage";
 import {
   SUPPORTED_LETTERS,
   SAMPLES_PER_LETTER,
@@ -66,10 +67,18 @@ export function useSignSession() {
   const [currentLetterIndex, setCurrentLetterIndex] = useState(0);
   const [samplesForLetter, setSamplesForLetter] = useState(0);
   const [textBuffer, setTextBuffer] = useState("");
+  const [hasSavedCalibration, setHasSavedCalibration] = useState(false);
 
   const setPhase = useCallback((p: SessionPhase) => {
     phaseRef.current = p;
     setPhaseState(p);
+  }, []);
+
+  useEffect(() => {
+    // localStorage doesn't exist during SSR, so this can't be a useState lazy
+    // initializer without risking a hydration mismatch; reading it once after mount is deliberate.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setHasSavedCalibration(loadCalibration() !== null);
   }, []);
 
   useEffect(() => {
@@ -160,6 +169,8 @@ export function useSignSession() {
 
           if (nextIndex >= SUPPORTED_LETTERS.length) {
             classifierRef.current.train(calibrationSamplesRef.current);
+            saveCalibration(calibrationSamplesRef.current);
+            setHasSavedCalibration(true);
             setPhase("TYPING");
           }
         }
@@ -248,6 +259,20 @@ export function useSignSession() {
     setPhase("CALIBRATING");
   }, [setPhase]);
 
+  /** Skips calibration entirely and trains the classifier from a previous session's saved samples. */
+  const useSavedCalibration = useCallback(() => {
+    const saved = loadCalibration();
+    if (!saved) return;
+    calibrationSamplesRef.current = saved;
+    classifierRef.current.train(saved);
+    setPhase("TYPING");
+  }, [setPhase]);
+
+  const forgetSavedCalibration = useCallback(() => {
+    clearCalibration();
+    setHasSavedCalibration(false);
+  }, []);
+
   const appendSpace = useCallback(() => setTextBuffer((prev) => prev + " "), []);
   const backspace = useCallback(() => setTextBuffer((prev) => prev.slice(0, -1)), []);
   const clearText = useCallback(() => setTextBuffer(""), []);
@@ -290,9 +315,12 @@ export function useSignSession() {
     samplesForLetter,
     samplesPerLetter: SAMPLES_PER_LETTER,
     textBuffer,
+    hasSavedCalibration,
     startCamera,
     startFromFile,
     startCalibration,
+    useSavedCalibration,
+    forgetSavedCalibration,
     appendSpace,
     backspace,
     clearText,

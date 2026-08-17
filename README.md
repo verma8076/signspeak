@@ -1,8 +1,8 @@
 # SignSpeak
 
-Type by fingerspelling. SignSpeak learns your hand from a 60-second personal calibration, then reads
-ASL fingerspelling live off your webcam and types it out, no wearable, no cloud, no pretrained dataset
-that assumes everyone's hands look the same.
+A generic sign-language model was trained on someone else's hand. SignSpeak isn't. It calibrates to
+**your own** hand shape in about 60 seconds, then reads ASL fingerspelling live off your webcam and
+types it out, no wearable, no cloud, no pretrained dataset that assumes everyone's hands look the same.
 
 Built for **Pixel Forge AI Hackathon 2026**.
 
@@ -11,7 +11,9 @@ Built for **Pixel Forge AI Hackathon 2026**.
 ## What it does
 
 1. **Calibrate.** Hold your hand up and step through all 24 static ASL fingerspelling letters (J and Z
-   need motion, so they're skipped), holding each shape steady for about a second, three times each.
+   need motion, so they're skipped), holding each shape steady for about a second, three times each. A
+   reference chart is one click away if you don't already know the alphabet. Calibration is saved
+   locally, so reloading the page doesn't force you to redo it.
 2. **Type.** Every hand shape after that gets classified against your own calibration samples. Hold a
    shape steady for a beat and it commits to the text buffer.
 
@@ -83,7 +85,8 @@ independent of the camera/UI layer.
 - Recognizes the 24 **static** ASL fingerspelling letters. J and Z require motion and aren't supported.
 - To type the same letter twice in a row, briefly drop your hand out of frame or change shape between
   holds, otherwise a continuous hold only commits once.
-- Calibration is per-session. Reload or click "Recalibrate" and you'll need to redo it.
+- Calibration is saved to this browser's local storage, not synced anywhere. Clear it any time from the
+  setup screen, or it's overwritten the next time you recalibrate.
 - Works best with one hand, clearly lit, filling a reasonable portion of the frame.
 
 ## Tech stack
@@ -93,3 +96,8 @@ Vitest
 
 No backend, no external API calls, no LLM, the core product is deterministic, on-device machine
 learning trained live on the person using it.
+
+## Credits
+
+The reference ASL alphabet chart (`public/reference/asl-alphabet-chart.png`) is a public domain
+image sourced from [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Asl_alphabet_gallaudet_ann.svg).

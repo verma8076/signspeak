@@ -12,9 +12,9 @@ export const MAX_ACCEPT_DISTANCE = 2.2;
 /**
  * A minimal k-nearest-neighbor classifier over calibrated hand-shape
  * examples. Trained per-user at calibration time, no pretrained dataset or
- * network call involved, every letter is classified from the athlete's own
- * calibration samples, mirroring the personal-baseline approach that made
- * DriftGuard's scoring trustworthy.
+ * network call involved, every letter is classified from the signer's own
+ * calibration samples so the model fits their specific hand instead of a
+ * generic average.
  */
 export class HandShapeClassifier {
   private examples: LabeledExample[] = [];
