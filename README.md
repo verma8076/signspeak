@@ -6,7 +6,7 @@ that assumes everyone's hands look the same.
 
 Built for **Pixel Forge AI Hackathon 2026**.
 
-**Live demo:** (added after deploy)
+**Live demo:** https://signspeak-dusky.vercel.app
 
 ## What it does
 
