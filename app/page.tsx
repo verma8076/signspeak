@@ -4,6 +4,7 @@ import { useSignSession } from "@/session/useSignSession";
 import { CameraView } from "@/components/CameraView";
 import { CalibrationPanel } from "@/components/CalibrationPanel";
 import { TypingPanel } from "@/components/TypingPanel";
+import { PracticeModePanel } from "@/components/PracticeModePanel";
 
 export default function Home() {
   const {
@@ -20,11 +21,17 @@ export default function Home() {
     samplesPerLetter,
     textBuffer,
     hasSavedCalibration,
+    practiceMode,
+    practiceTarget,
+    practiceScore,
+    practiceFeedback,
     startCamera,
     startFromFile,
     startCalibration,
     useSavedCalibration,
     forgetSavedCalibration,
+    startPractice,
+    stopPractice,
     appendSpace,
     backspace,
     clearText,
@@ -139,20 +146,41 @@ export default function Home() {
 
       {phase === "TYPING" && (
         <div className="flex flex-col gap-4">
-          <TypingPanel
-            textBuffer={textBuffer}
-            classification={liveMetrics.classification}
-            dwellProgress={liveMetrics.dwellProgress}
-            onSpace={appendSpace}
-            onBackspace={backspace}
-            onClear={clearText}
-          />
-          <button
-            onClick={resetSession}
-            className="fade-up self-start rounded-full border border-border px-5 py-2.5 text-sm font-medium text-ink-secondary transition hover:border-border-strong hover:text-ink-primary"
-          >
-            Recalibrate
-          </button>
+          {practiceMode ? (
+            <PracticeModePanel
+              target={practiceTarget}
+              classification={liveMetrics.classification}
+              dwellProgress={liveMetrics.dwellProgress}
+              score={practiceScore}
+              feedback={practiceFeedback}
+              onExit={stopPractice}
+            />
+          ) : (
+            <TypingPanel
+              textBuffer={textBuffer}
+              classification={liveMetrics.classification}
+              dwellProgress={liveMetrics.dwellProgress}
+              onSpace={appendSpace}
+              onBackspace={backspace}
+              onClear={clearText}
+            />
+          )}
+          <div className="flex flex-wrap gap-3">
+            {!practiceMode && (
+              <button
+                onClick={startPractice}
+                className="fade-up self-start rounded-full border border-border px-5 py-2.5 text-sm font-medium text-ink-secondary transition hover:border-border-strong hover:text-ink-primary"
+              >
+                Practice mode
+              </button>
+            )}
+            <button
+              onClick={resetSession}
+              className="fade-up self-start rounded-full border border-border px-5 py-2.5 text-sm font-medium text-ink-secondary transition hover:border-border-strong hover:text-ink-primary"
+            >
+              Recalibrate
+            </button>
+          </div>
         </div>
       )}
     </div>

@@ -28,6 +28,18 @@ export interface LiveMetrics {
   dwellProgress: number;
 }
 
+export interface PracticeScore {
+  correct: number;
+  attempts: number;
+}
+
+export type PracticeFeedback = "correct" | "incorrect" | null;
+
+export function randomPracticeTarget(exclude: Letter | null): Letter {
+  const pool = exclude ? SUPPORTED_LETTERS.filter((l) => l !== exclude) : SUPPORTED_LETTERS;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
 const INITIAL_METRICS: LiveMetrics = {
   handDetected: false,
   classification: { letter: null, confidence: 0, nearestDistance: Infinity },
@@ -68,6 +80,14 @@ export function useSignSession() {
   const [samplesForLetter, setSamplesForLetter] = useState(0);
   const [textBuffer, setTextBuffer] = useState("");
   const [hasSavedCalibration, setHasSavedCalibration] = useState(false);
+  const [practiceMode, setPracticeMode] = useState(false);
+  const [practiceTarget, setPracticeTarget] = useState<Letter | null>(null);
+  const [practiceScore, setPracticeScore] = useState<PracticeScore>({ correct: 0, attempts: 0 });
+  const [practiceFeedback, setPracticeFeedback] = useState<PracticeFeedback>(null);
+
+  const practiceModeRef = useRef(false);
+  const practiceTargetRef = useRef<Letter | null>(null);
+  const feedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const setPhase = useCallback((p: SessionPhase) => {
     phaseRef.current = p;
@@ -185,7 +205,24 @@ export function useSignSession() {
 
       const committed = letterCommitterRef.current.update(classification.letter, classification.confidence, nowMs);
       if (committed) {
-        setTextBuffer((prev) => prev + committed);
+        if (practiceModeRef.current) {
+          const target = practiceTargetRef.current;
+          const isCorrect = committed === target;
+          setPracticeScore((prev) => ({
+            correct: prev.correct + (isCorrect ? 1 : 0),
+            attempts: prev.attempts + 1,
+          }));
+          setPracticeFeedback(isCorrect ? "correct" : "incorrect");
+          if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
+          feedbackTimeoutRef.current = setTimeout(() => setPracticeFeedback(null), 900);
+          if (isCorrect) {
+            const next = randomPracticeTarget(target);
+            practiceTargetRef.current = next;
+            setPracticeTarget(next);
+          }
+        } else {
+          setTextBuffer((prev) => prev + committed);
+        }
       }
     }
   }, [setPhase, tick]);
@@ -273,6 +310,27 @@ export function useSignSession() {
     setHasSavedCalibration(false);
   }, []);
 
+  /** Switches the typing screen into a drill: sign the requested letter, get instant pass/fail feedback. */
+  const startPractice = useCallback(() => {
+    const first = randomPracticeTarget(null);
+    practiceModeRef.current = true;
+    practiceTargetRef.current = first;
+    setPracticeMode(true);
+    setPracticeTarget(first);
+    setPracticeScore({ correct: 0, attempts: 0 });
+    setPracticeFeedback(null);
+    letterCommitterRef.current.reset();
+  }, []);
+
+  const stopPractice = useCallback(() => {
+    practiceModeRef.current = false;
+    practiceTargetRef.current = null;
+    setPracticeMode(false);
+    setPracticeTarget(null);
+    if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
+    letterCommitterRef.current.reset();
+  }, []);
+
   const appendSpace = useCallback(() => setTextBuffer((prev) => prev + " "), []);
   const backspace = useCallback(() => setTextBuffer((prev) => prev.slice(0, -1)), []);
   const clearText = useCallback(() => setTextBuffer(""), []);
@@ -284,9 +342,15 @@ export function useSignSession() {
     classifierRef.current = new HandShapeClassifier();
     calibrationControllerRef.current.reset();
     letterCommitterRef.current.reset();
+    practiceModeRef.current = false;
+    practiceTargetRef.current = null;
     setCurrentLetterIndex(0);
     setSamplesForLetter(0);
     setTextBuffer("");
+    setPracticeMode(false);
+    setPracticeTarget(null);
+    setPracticeScore({ correct: 0, attempts: 0 });
+    setPracticeFeedback(null);
     setLiveMetrics(INITIAL_METRICS);
     setPhase("SETUP");
   }, [setPhase]);
@@ -296,6 +360,7 @@ export function useSignSession() {
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
       streamRef.current?.getTracks().forEach((t) => t.stop());
       if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+      if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
     };
   }, []);
 
@@ -316,11 +381,17 @@ export function useSignSession() {
     samplesPerLetter: SAMPLES_PER_LETTER,
     textBuffer,
     hasSavedCalibration,
+    practiceMode,
+    practiceTarget,
+    practiceScore,
+    practiceFeedback,
     startCamera,
     startFromFile,
     startCalibration,
     useSavedCalibration,
     forgetSavedCalibration,
+    startPractice,
+    stopPractice,
     appendSpace,
     backspace,
     clearText,
